@@ -75,7 +75,7 @@ function discord_integration_install() {
             'title' => 'New Thread Discord Nessage',
             'description' => 'Message to send the Discord channel when a new thread is posted. See <a href="https://github.com/kalynrobinson/discord_integration/wiki/Variables">Discord Integration Variables</a> for variables you can use. Message can use <a href="https://support.discordapp.com/hc/en-us/articles/210298617-Markdown-Text-101-Chat-Formatting-Bold-Italic-Underline">markdown</a>.',
             'optionscode' => 'textarea',
-            'value' => '$username created the thread [$title]($threadurl) in [$forum]($forumurl).',
+            'value' => '[{$mybb->user["username"]}]($userurl) created the thread [{$mybb->input["subject"]}]($threadurl) in [{$forum["name"]}]($forumurl).',
             'disporder' => 6
         ),
         'discord_integration_new_reply_webhook' => array(
@@ -107,14 +107,14 @@ function discord_integration_install() {
             'title' => 'New Reply Discord Message',
             'description' => 'Message to send the Discord channel when a new reply is posted. See <a href="https://github.com/kalynrobinson/discord_integration/wiki/Variables">Discord Integration Variables</a> for variables you can use. Message can use <a href="https://support.discordapp.com/hc/en-us/articles/210298617-Markdown-Text-101-Chat-Formatting-Bold-Italic-Underline">markdown</a>.',
             'optionscode' => 'textarea',
-            'value' => '$username posted in [$title]($threadurl).\n\n$post',
+            'value' => '[{$mybb->user["username"]}]($userurl) posted in [{$mybb->input["subject"]}]($threadurl):\n\n$messageshort',
             'disporder' => 12
         ),
         'discord_integration_additional' => array(
             'title' => 'Additional Webhooks',
             'description' => 'Send messages for more specific behavior, e.g. when a staff member posts in your announcements board. See <a href="https://github.com/kalynrobinson/discord_integration/wiki/Additional-Behavior-Instructions">Additional Behavior Instructions</a> for further information.',
             'optionscode' => 'textarea',
-						'value' => "webhook=this_is_a_webhook\nbehavior=new_reply\nforums=1,2,3\ngroups=1\nprefixes=0\nmessage=\$username posted an announcement [\$title](\$threadurl)!\n---\n\nwebhook=this_is_another_webhook\nbehavior=new_topic\nforums=4\ngroups=2,3,4\nprefixes=1\nmessage=\$username posted an open thread [\$title](\$threadurl).",
+						'value' => 'webhook=this_is_a_webhook\nbehavior=new_reply\nforums=1,2,3\ngroups=1\nprefixes=0\nmessage=\[$mybb->user["username"]](\$userurl) posted an announcement [\{$mybb->input["subject"]}](\$threadurl)!\n---\nwebhook=this_is_another_webhook\nbehavior=new_thread\nforums=4\ngroups=2,3,4\nprefixes=1\nmessage=\[\$mybb->user["username"]](\$userurl) posted an open thread [\{$mybb->input["subject"]}](\$threadurl).',
             'disporder' => 17
         )
     );
@@ -231,13 +231,13 @@ function has_specific_permission($specific, $behavior) {
 		$allowed = in_array((string) $forum, $allowed_forums);
 	}
 
-	if ($specific['groups']) {
+	if ($specific['groups'] && $allowed) {
 		$allowed_groups = explode(',', $specific['groups']);
 		$user_groups = explode(',', $mybb->user['usergroup']);
 		$allowed = count(array_intersect($user_groups, $allowed_groups)) > 0;
 	}
 
-	if ($specific['prefixes']) {
+	if ($specific['prefixes'] && $allowed) {
 		$allowed_prefixes = explode(',', $specific['prefixes']);
 		$prefix = $thread['prefix'];
 		$allowed = in_array((string) $prefix, $allowed_prefixes);
@@ -247,7 +247,7 @@ function has_specific_permission($specific, $behavior) {
 }
 
 function has_permission($behavior) {
-	global $mybb;
+	global $mybb, $fid;
 
 	$allowed = true;
 
@@ -261,7 +261,7 @@ function has_permission($behavior) {
 	// Not all forums are allowed
 	if ($mybb->settings['discord_integration_'.$behavior.'_forums'] != -1) {
 		$allowed_forums = explode(',', $mybb->settings['discord_integration_'.$behavior.'_forums']);
-		$forum = $mybb->input['fid'];
+		$forum = $fid;
 		$allowed = in_array($forum, $allowed_forums);
 	}
 
@@ -281,7 +281,6 @@ function build_request($behavior) {
 	$SHORT_POST_LENGTH = 200;
 
 	$content = $mybb->settings['discord_integration_'.$behavior.'_message'];
-	$content = str_replace("\$mybb['password']", '', $content);
 
 	$userurl = "{$mybb->settings['bburl']}/member.php?action=profile&uid={$mybb->user['uid']}";
 	$threadurl = "{$mybb->settings['bburl']}/showthread.php?tid={$tid}&pid={$pid}#pid{$pid}";
