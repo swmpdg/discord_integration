@@ -1,6 +1,10 @@
 # Discord Integration
 Automatically send messages to your Discord channels when a user does something!
 
+## Additional Instructions
+* See [Additional Behavior Instructions](https://github.com/kalynrobinson/discord_integration/wiki/Additional-Behavior-Instructions) to learn how to make more specific triggers.
+* See [Variables](https://github.com/kalynrobinson/discord_integration/wiki/Variables) for a list of variables you can use in your messages.
+
 ## Features
 * Send Discord messages based on the following behaviors:
   * User posts a new thread in specific forums

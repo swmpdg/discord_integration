@@ -72,7 +72,7 @@ function discord_integration_install() {
         ),
         'discord_integration_new_thread_message' => array(
             'title' => 'New Thread Discord Nessage',
-            'description' => 'Message to send the Discord channel when a new thread is posted. See <a href="http://">New Thread Variables</a> for variables you can use. Message can use <a href="https://support.discordapp.com/hc/en-us/articles/210298617-Markdown-Text-101-Chat-Formatting-Bold-Italic-Underline">markdown</a>.',
+            'description' => 'Message to send the Discord channel when a new thread is posted. See <a href="https://github.com/kalynrobinson/discord_integration/wiki/Variables">Discord Integration Variables</a> for variables you can use. Message can use <a href="https://support.discordapp.com/hc/en-us/articles/210298617-Markdown-Text-101-Chat-Formatting-Bold-Italic-Underline">markdown</a>.',
             'optionscode' => 'textarea',
             'value' => '$username created the thread [$title]($threadurl) in [$forum]($forumurl).',
             'disporder' => 6
@@ -104,34 +104,14 @@ function discord_integration_install() {
         ),
         'discord_integration_new_reply_message' => array(
             'title' => 'New Reply Discord Message',
-            'description' => 'Message to send the Discord channel when a new reply is posted. See <a href="http://">New Reply Variables</a> for variables you can use. Message can use <a href="https://support.discordapp.com/hc/en-us/articles/210298617-Markdown-Text-101-Chat-Formatting-Bold-Italic-Underline">markdown</a>.',
+            'description' => 'Message to send the Discord channel when a new reply is posted. See <a href="https://github.com/kalynrobinson/discord_integration/wiki/Variables">Discord Integration Variables</a> for variables you can use. Message can use <a href="https://support.discordapp.com/hc/en-us/articles/210298617-Markdown-Text-101-Chat-Formatting-Bold-Italic-Underline">markdown</a>.',
             'optionscode' => 'textarea',
             'value' => '$username posted in [$title]($threadurl).\n\n$post',
             'disporder' => 12
         ),
-        'discord_integration_new_registration_webhook' => array(
-            'title' => 'Registration Webhook',
-            'description' => 'Webhook for the channel that registration notifications will be posted in. Leave blank to disable. See <a href="https://support.discordapp.com/hc/en-us/articles/228383668-Intro-to-Webhooks">Intro to Webhooks</a> to learn how to find the webhook for your channel.',
-            'optionscode' => 'text',
-            'disporder' => 13
-        ),
-        'discord_integration_registration_nickname' => array(
-            'title' => 'Registration Discord Nickname',
-            'description' => "Leave blank to use acting user\'s username.",
-            'optionscode' => 'text',
-            'value' => '',
-            'disporder' => 15
-        ),
-        'discord_integration_registration_message' => array(
-            'title' => 'Registration Discord Message',
-            'description' => 'Message to send the Discord channel when a user registers. See <a href="http://">Registration Variables</a> for variables you can use. Message can use <a href="https://support.discordapp.com/hc/en-us/articles/210298617-Markdown-Text-101-Chat-Formatting-Bold-Italic-Underline">markdown</a>.',
-            'optionscode' => 'textarea',
-            'value' => '[$username]($userlink) registered!',
-            'disporder' => 16
-        ),
         'discord_integration_additional' => array(
             'title' => 'Additional Webhooks',
-            'description' => 'Send messages for more specific behavior, e.g. when a staff member posts in your announcements board. See <a href="http://">Custom Behavior</a> for further instructions.',
+            'description' => 'Send messages for more specific behavior, e.g. when a staff member posts in your announcements board. See <a href="https://github.com/kalynrobinson/discord_integration/wiki/Additional-Behavior-Instructions">Additional Behavior Instructions</a> for further information.',
             'optionscode' => 'textarea',
 						'value' => "webhook=this_is_a_webhook\nbehavior=new_reply\nforums=1,2,3\ngroups=1\nprefixes=0\nmessage=\$username posted an announcement [\$title](\$threadurl)!\n---\n\nwebhook=this_is_another_webhook\nbehavior=new_topic\nforums=4\ngroups=2,3,4\nprefixes=1\nmessage=\$username posted an open thread [\$title](\$threadurl).",
             'disporder' => 17
