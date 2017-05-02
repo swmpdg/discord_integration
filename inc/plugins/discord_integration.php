@@ -68,7 +68,7 @@ function discord_integration_install() {
             'title' => 'New Thread Discord Nickname',
             'description' => "Leave blank to use acting user\'s username.",
             'optionscode' => 'text',
-            'value' => 'MyBB Bot',
+            'value' => '',
             'disporder' => 5
         ),
         'discord_integration_new_thread_message' => array(
@@ -100,7 +100,7 @@ function discord_integration_install() {
             'title' => 'New Reply Discord Nickname',
             'description' => "Leave blank to use acting user\'s username.",
             'optionscode' => 'text',
-            'value' => 'MyBB Bot',
+            'value' => '',
             'disporder' => 11
         ),
         'discord_integration_new_reply_message' => array(
