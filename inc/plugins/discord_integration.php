@@ -275,7 +275,7 @@ function build_request($behavior) {
 		$request->username = $mybb->settings['discord_integration_'.$behavior.'_nickname'];
 	else {
 		$request->username = $mybb->user['username'];
-		$request->avatar_url = $mybb->user['avatar'];
+		$request->avatar_url = $mybb->settings['bburl'] . $mybb->user['avatar'];
 	}
 
 	$SHORT_POST_LENGTH = 200;
