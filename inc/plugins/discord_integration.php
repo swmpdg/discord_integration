@@ -64,9 +64,16 @@ function discord_integration_install() {
             'optionscode' => 'groupselect',
             'disporder' => 3
         ),
+        'discord_integration_new_thread_default_nickname' => array(
+            'title' => "Use webhook\'s default nickname for new threads?",
+            'description' => "If no, you can specify a custom name below or default to the acting user\'s name.",
+            'optionscode' => 'yesno',
+        		'value' => 0,
+            'disporder' => 4
+        ),
         'discord_integration_new_thread_nickname' => array(
             'title' => 'New Thread Discord Nickname',
-            'description' => "Leave blank to use acting user\'s username.",
+            'description' => "If above is \'no\', enter a custom nickname or leave blank to use acting user\'s username.",
             'optionscode' => 'text',
             'value' => '',
             'disporder' => 5
@@ -96,26 +103,33 @@ function discord_integration_install() {
             'optionscode' => 'groupselect',
             'disporder' => 9
         ),
+        'discord_integration_new_reply_default_nickname' => array(
+            'title' => "Use webhook\'s default nickname for new replies?",
+            'description' => "If no, you can specify a custom name below or default to the acting user\'s name.",
+            'optionscode' => 'yesno',
+        		'value' => 0,
+            'disporder' => 10
+        ),
         'discord_integration_new_reply_nickname' => array(
             'title' => 'New Reply Discord Nickname',
-            'description' => "Leave blank to use acting user\'s username.",
+            'description' => "If above is \'no\', enter a custom nickname or leave blank to use acting user\'s username.",
             'optionscode' => 'text',
             'value' => '',
-            'disporder' => 11
+            'disporder' => 12
         ),
         'discord_integration_new_reply_message' => array(
             'title' => 'New Reply Discord Message',
             'description' => 'Message to send the Discord channel when a new reply is posted. See <a href="https://github.com/kalynrobinson/discord_integration/wiki/Variables">Discord Integration Variables</a> for variables you can use. Message can use <a href="https://support.discordapp.com/hc/en-us/articles/210298617-Markdown-Text-101-Chat-Formatting-Bold-Italic-Underline">markdown</a>.',
             'optionscode' => 'textarea',
             'value' => '[{$mybb->user["username"]}]($userurl) posted in [{$mybb->input["subject"]}]($threadurl):\n\n$messageshort',
-            'disporder' => 12
+            'disporder' => 13
         ),
         'discord_integration_additional' => array(
             'title' => 'Additional Webhooks',
             'description' => 'Send messages for more specific behavior, e.g. when a staff member posts in your announcements board. See <a href="https://github.com/kalynrobinson/discord_integration/wiki/Additional-Behavior-Instructions">Additional Behavior Instructions</a> for further information.',
             'optionscode' => 'textarea',
 						'value' => 'webhook=this_is_a_webhook\nbehavior=new_reply\nforums=1,2,3\ngroups=1\nprefixes=0\nmessage=\[$mybb->user["username"]](\$userurl) posted an announcement [\{$mybb->input["subject"]}](\$threadurl)!\n---\nwebhook=this_is_another_webhook\nbehavior=new_thread\nforums=4\ngroups=2,3,4\nprefixes=1\nmessage=\[\$mybb->user["username"]](\$userurl) posted an open thread [\{$mybb->input["subject"]}](\$threadurl).',
-            'disporder' => 17
+            'disporder' => 14
         )
     );
 
@@ -271,11 +285,13 @@ function has_permission($behavior) {
 function build_request($behavior) {
 	global $tid, $pid, $mybb, $forum;
 
-	if ($mybb->settings['discord_integration_'.$behavior.'_nickname'])
-		$request->username = $mybb->settings['discord_integration_'.$behavior.'_nickname'];
-	else {
-		$request->username = $mybb->user['username'];
-		$request->avatar_url = $mybb->settings['bburl'] . $mybb->user['avatar'];
+	if (!$mybb->settings['discord_integration_'.$behavior.'_default_nickname']) {
+		if ($mybb->settings['discord_integration_'.$behavior.'_nickname'])
+			$request->username = $mybb->settings['discord_integration_'.$behavior.'_nickname'];
+		else {
+			$request->username = $mybb->user['username'];
+			$request->avatar_url = $mybb->settings['bburl'] . $mybb->user['avatar'];
+		}
 	}
 
 	$SHORT_POST_LENGTH = 200;
