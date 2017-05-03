@@ -72,7 +72,7 @@ function discord_integration_install() {
             'disporder' => 5
         ),
         'discord_integration_new_thread_message' => array(
-            'title' => 'New Thread Discord Nessage',
+            'title' => 'New Thread Discord Message',
             'description' => 'Message to send the Discord channel when a new thread is posted. See <a href="https://github.com/kalynrobinson/discord_integration/wiki/Variables">Discord Integration Variables</a> for variables you can use. Message can use <a href="https://support.discordapp.com/hc/en-us/articles/210298617-Markdown-Text-101-Chat-Formatting-Bold-Italic-Underline">markdown</a>.',
             'optionscode' => 'textarea',
             'value' => '[{$mybb->user["username"]}]($userurl) created the thread [{$mybb->input["subject"]}]($threadurl) in [{$forum["name"]}]($forumurl).',
