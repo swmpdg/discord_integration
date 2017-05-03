@@ -25,7 +25,7 @@ function discord_integration_info() {
 		'author'		=> 'Shinka',
 		'authorsite'	=> 'https://github.com/kalynrobinson/discord_integration',
 		'website' => 'https://github.com/kalynrobinson/discord_integration',
-		'version'		=> '0.0.1',
+		'version'		=> '2.0.0',
 		'guid' 			=> '',
 		'codename'		=> 'discord_integration',
 		'compatibility' => '18'
