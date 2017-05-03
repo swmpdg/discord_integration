@@ -15,7 +15,6 @@ if (!defined('IN_MYBB')) {
 
 $plugins->add_hook('newthread_do_newthread_end', 'discord_integration_new_thread');
 $plugins->add_hook('newreply_do_newreply_end', 'discord_integration_new_reply');
-$plugins->add_hook('member_do_register_end', 'discord_integration_registration');
 
 function discord_integration_info() {
 	return array(
