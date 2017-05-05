@@ -127,7 +127,7 @@ function discord_integration_install() {
             'title' => 'Additional Webhooks',
             'description' => 'Send messages for more specific behavior, e.g. when a staff member posts in your announcements board. See <a href="https://github.com/kalynrobinson/discord_integration/wiki/Additional-Behavior-Instructions">Additional Behavior Instructions</a> for further information.',
             'optionscode' => 'textarea',
-						'value' => 'webhook=this_is_a_webhook\nbehavior=new_reply\nforums=1,2,3\ngroups=1\nprefixes=0\nmessage=\[$mybb->user["username"]](\$userurl) posted an announcement [\{$mybb->input["subject"]}](\$threadurl)!\n---\nwebhook=this_is_another_webhook\nbehavior=new_thread\nforums=4\ngroups=2,3,4\nprefixes=1\nmessage=\[\$mybb->user["username"]](\$userurl) posted an open thread [\{$mybb->input["subject"]}](\$threadurl).',
+						'value' => 'webhook=this_is_a_webhook\nbehavior=new_reply\nforums=1,2,3\ngroups=1\nprefixes=0\nmessage=[{$mybb->user["username"]}](\$userurl) posted an announcement [{$mybb->input["subject"]}](\$threadurl)!\n---\nwebhook=this_is_another_webhook\nbehavior=new_thread\nforums=4\ngroups=2,3,4\nprefixes=1\nmessage=\[$mybb->user["username"]](\$userurl) posted an open thread [\{$mybb->input["subject"]}](\$threadurl).',
             'disporder' => 14
         )
     );
@@ -185,7 +185,7 @@ function send_specific($behavior) {
 	if (!$specifics) return;
 
 	foreach ($specifics as $specific) {
-		send_request($behavior, $specific['webhook']);
+		send_request($behavior, $specific['webhook'], $specific['nickname'], $specific['message']);
 	}
 }
 
@@ -281,10 +281,16 @@ function has_permission($behavior) {
 	return $allowed;
 }
 
-function build_request($behavior) {
+function build_request($behavior, $nickname=NULL, $content=NULL) {
 	global $tid, $pid, $mybb, $forum;
 
-	if (!$mybb->settings['discord_integration_'.$behavior.'_default_nickname']) {
+	if ($nickname) {
+		try {
+			eval('$request->username = "' . $nickname . '";');
+		} catch(Exception $e) {
+			$request->username = $nickname;
+		}
+	} else if (!$mybb->settings['discord_integration_'.$behavior.'_default_nickname']) {
 		if ($mybb->settings['discord_integration_'.$behavior.'_nickname'])
 			$request->username = $mybb->settings['discord_integration_'.$behavior.'_nickname'];
 		else {
@@ -295,7 +301,7 @@ function build_request($behavior) {
 
 	$SHORT_POST_LENGTH = 200;
 
-	$content = $mybb->settings['discord_integration_'.$behavior.'_message'];
+	if (!$content) $content = $mybb->settings['discord_integration_'.$behavior.'_message'];
 
 	$userurl = "{$mybb->settings['bburl']}/member.php?action=profile&uid={$mybb->user['uid']}";
 	$threadurl = "{$mybb->settings['bburl']}/showthread.php?tid={$tid}&pid={$pid}#pid{$pid}";
@@ -306,15 +312,19 @@ function build_request($behavior) {
 	else
 		$messageshort = $mybb->input['message'];
 
-	eval('$content = "' . $content . '";');
+	try {
+		eval('$content = "' . $content . '";');
+	} catch (Exception $e) {
+		$content = 'Sorry, there\'s something wrong with your message variables!';
+	}
 
 	$request->content = $content;
 
 	return $request;
 }
 
-function send_request($behavior, $webhook) {
-	$request = build_request($behavior);
+function send_request($behavior, $webhook, $nickname = NULL, $message = NULL) {
+	$request = build_request($behavior, $nickname, $message);
 
 	$curl = curl_init();
 
