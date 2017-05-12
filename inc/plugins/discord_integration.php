@@ -24,7 +24,7 @@ function discord_integration_info() {
 		'author'		=> 'Shinka',
 		'authorsite'	=> 'https://github.com/kalynrobinson/discord_integration',
 		'website' => 'https://github.com/kalynrobinson/discord_integration',
-		'version'		=> '2.0.0',
+		'version'		=> '2.1.0',
 		'guid' 			=> '',
 		'codename'		=> 'discord_integration',
 		'compatibility' => '18'
@@ -64,15 +64,16 @@ function discord_integration_install() {
             'disporder' => 3
         ),
         'discord_integration_new_thread_default_nickname' => array(
-            'title' => "Use webhook\'s default nickname for new threads?",
-            'description' => "If no, you can specify a custom name below or default to the acting user\'s name.",
+            'title' => "Use webhook default nickname for new threads?",
+            'description' => "If no, you can specify a custom name below or default to the acting username.",
+            'description' => "If no, you can specify a custom name below or default to the acting username.",
             'optionscode' => 'yesno',
         		'value' => 0,
             'disporder' => 4
         ),
         'discord_integration_new_thread_nickname' => array(
             'title' => 'New Thread Discord Nickname',
-            'description' => "If above is \'no\', enter a custom nickname or leave blank to use acting user\'s username.",
+            'description' => "If above is no, enter a custom nickname or leave blank to use acting username.",
             'optionscode' => 'text',
             'value' => '',
             'disporder' => 5
@@ -103,15 +104,15 @@ function discord_integration_install() {
             'disporder' => 9
         ),
         'discord_integration_new_reply_default_nickname' => array(
-            'title' => "Use webhook\'s default nickname for new replies?",
-            'description' => "If no, you can specify a custom name below or default to the acting user\'s name.",
+            'title' => "Use webhook default nickname for new replies?",
+            'description' => "If no, you can specify a custom name below or default to the acting username.",
             'optionscode' => 'yesno',
         		'value' => 0,
             'disporder' => 10
         ),
         'discord_integration_new_reply_nickname' => array(
             'title' => 'New Reply Discord Nickname',
-            'description' => "If above is \'no\', enter a custom nickname or leave blank to use acting user\'s username.",
+            'description' => "If above is no, enter a custom nickname or leave blank to use acting username.",
             'optionscode' => 'text',
             'value' => '',
             'disporder' => 12
@@ -127,7 +128,7 @@ function discord_integration_install() {
             'title' => 'Additional Webhooks',
             'description' => 'Send messages for more specific behavior, e.g. when a staff member posts in your announcements board. See <a href="https://github.com/kalynrobinson/discord_integration/wiki/Additional-Behavior-Instructions">Additional Behavior Instructions</a> for further information.',
             'optionscode' => 'textarea',
-						'value' => 'webhook=this_is_a_webhook\nbehavior=new_reply\nforums=1,2,3\ngroups=1\nprefixes=0\nmessage=[{$mybb->user["username"]}](\$userurl) posted an announcement [{$mybb->input["subject"]}](\$threadurl)!\n---\nwebhook=this_is_another_webhook\nbehavior=new_thread\nforums=4\ngroups=2,3,4\nprefixes=1\nmessage=\[$mybb->user["username"]](\$userurl) posted an open thread [\{$mybb->input["subject"]}](\$threadurl).',
+			'value' => '-webhook=this_is_a_webhook\n-behavior=new_reply\n-forums=1,2,3\n-groups=1\n-prefixes=0\n-message=[{$mybb->user["username"]}](\$userurl) posted an announcement [{$mybb->input["subject"]}](\$threadurl)!\n---\n-webhook=this_is_another_webhook\n-behavior=new_thread\n-forums=4\n-groups=2,3,4\n-prefixes=1\n-message=\[$mybb->user["username"]](\$userurl) posted an open thread [\{$mybb->input["subject"]}](\$threadurl).',
             'disporder' => 14
         )
     );
@@ -201,13 +202,15 @@ function send_general($behavior) {
 function explode_alternatives() {
 	global $mybb;
 
-	$settings = $mybb->settings['discord_integration_additional'];
-	// For some reason, \n--\n doesn't work as a delimiter, so just trim extra whitespace..
+	// Trim first '-' from settings
+	$settings = substr($mybb->settings['discord_integration_additional'], 1);
+
+	// For some reason, \n--\n doesn't work as a delimiter, so just trim extra whitespace.
 	$exploded_settings = explode("\n---", $settings);
 	$settings = array();
 
 	foreach ($exploded_settings as $key => $value) {
-	    $explosion = explode("\n", $value);
+	    $explosion = explode("\n-", $value);
 	    $inner = array();
 	    foreach($explosion as $ekey => $evalue) {
 	        $inner_explosion = explode('=', $evalue);
@@ -282,7 +285,22 @@ function has_permission($behavior) {
 }
 
 function build_request($behavior, $nickname=NULL, $content=NULL) {
-	global $tid, $pid, $mybb, $forum;
+	global $cache, $tid, $pid, $mybb, $forum;
+
+	$prefix = $cache->read("threadprefixes")[$mybb->input['threadprefix']]['prefix'];
+
+	$SHORT_POST_LENGTH = 200;
+
+	if (!$content) $content = $mybb->settings['discord_integration_'.$behavior.'_message'];
+
+	$userurl = "{$mybb->settings['bburl']}/member.php?action=profile&uid={$mybb->user['uid']}";
+	$threadurl = "{$mybb->settings['bburl']}/showthread.php?tid={$tid}&pid={$pid}#pid{$pid}";
+	$forumurl = "{$mybb->settings['bburl']}/forumdisplay.php?fid={$forum['fid']}";
+
+	if (strlen($mybb->input['message']) > $SHORT_POST_LENGTH)
+		$messageshort = substr($mybb->input['message'], 0, $SHORT_POST_LENGTH) . '...';
+	else
+		$messageshort = $mybb->input['message'];
 
 	if ($nickname) {
 		try {
@@ -299,23 +317,10 @@ function build_request($behavior, $nickname=NULL, $content=NULL) {
 		}
 	}
 
-	$SHORT_POST_LENGTH = 200;
-
-	if (!$content) $content = $mybb->settings['discord_integration_'.$behavior.'_message'];
-
-	$userurl = "{$mybb->settings['bburl']}/member.php?action=profile&uid={$mybb->user['uid']}";
-	$threadurl = "{$mybb->settings['bburl']}/showthread.php?tid={$tid}&pid={$pid}#pid{$pid}";
-	$forumurl = "{$mybb->settings['bburl']}/forumdisplay.php?fid={$forum['fid']}";
-
-	if (strlen($mybb->input['message']) > $SHORT_POST_LENGTH)
-		$messageshort = substr($mybb->input['message'], 0, $SHORT_POST_LENGTH) . '...';
-	else
-		$messageshort = $mybb->input['message'];
-
 	try {
 		eval('$content = "' . $content . '";');
 	} catch (Exception $e) {
-		$content = 'Sorry, there\'s something wrong with your message variables!';
+		$content = "Sorry, there's something wrong with your message variables!";
 	}
 
 	$request->content = $content;
