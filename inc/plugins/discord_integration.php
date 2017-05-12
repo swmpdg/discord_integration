@@ -269,7 +269,7 @@ function has_permission($behavior) {
 
 	// Not all groups are allowed
 	if ($mybb->settings['discord_integration_'.$behavior.'_groups'] != -1) {
-		$user_groups = explode(',', $mybb->$user['usergroup']);
+		$user_groups = explode(',', $mybb->user['usergroup']);
 		$allowed_groups = explode(',', $mybb->settings['discord_integration_'.$behavior.'_groups']);
 		$allowed = count(array_intersect($user_groups, $allowed_groups)) > 0;
 	}
