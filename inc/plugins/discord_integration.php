@@ -13,17 +13,21 @@ if (!defined('IN_MYBB')) {
 	die('Direct initialization of this file is not allowed.');
 }
 
-$plugins->add_hook('newthread_do_newthread_end', 'discord_integration_new_thread');
-$plugins->add_hook('newreply_do_newreply_end', 'discord_integration_new_reply');
+$plugins->add_hook('datahandler_post_insert_thread', 'discord_integration_new_thread');
+$plugins->add_hook('datahandler_post_insert_post', 'discord_integration_new_reply');
 
 function discord_integration_info() {
+	global $lang;
+
+	$lang->load('discord_integration');
+
 	return array(
-		'name'			=> 'Discord Integration',
-		'description'	=> 'Automatically send messages to your Discord channels when a user does something!',
+		'name'			=> $lang->discord_integration_name,
+		'description'	=> $lang->discord_integration_desc,
 		'website'		=> '',
 		'author'		=> 'Shinka',
 		'authorsite'	=> 'https://github.com/kalynrobinson/discord_integration',
-		'website' => 'https://github.com/kalynrobinson/discord_integration',
+		'website' 		=> 'https://github.com/kalynrobinson/discord_integration',
 		'version'		=> '2.1.0',
 		'guid' 			=> '',
 		'codename'		=> 'discord_integration',
@@ -32,12 +36,14 @@ function discord_integration_info() {
 }
 
 function discord_integration_install() {
-    global $db, $mybb;
+    global $db, $mybb, $lang;
+
+	$lang->load('discord_integration');
 
     $setting_group = array(
         'name' => 'discord_integration',
-        'title' => 'Discord Integration Settings',
-        'description' => 'Automatically send messages to your Discord channels when a user does something!',
+        'title' => $lang->discord_integration_settings_title,
+        'description' => $lang->discord_integration_settings_desc,
         'disporder' => 5,
         'isdefault' => 0
     );
@@ -46,95 +52,105 @@ function discord_integration_install() {
 
     $setting_array = array(
         'discord_integration_new_thread_webhook' => array(
-            'title' => 'New Thread Webhook',
-            'description' => 'Webhook for the channel that new thread notifications will be posted in. Leave blank to disable. See <a href="https://support.discordapp.com/hc/en-us/articles/228383668-Intro-to-Webhooks">Intro to Webhooks</a> to learn how to find the webhook for your channel.',
+            'title' => $lang->discord_integration_new_thread_webhook_title,
+            'description' => $lang->discord_integration_new_thread_webhook_desc,
             'optionscode' => 'text',
             'disporder' => 1
         ),
         'discord_integration_new_thread_forums' => array(
-            'title' => 'New Thread Forums',
-            'description' => 'Sends a Discord message when a new thread is posted in the specified forums.',
+            'title' => $lang->discord_integration_new_thread_forums_title,
+            'description' => $lang->discord_integration_new_thread_forums_desc,
             'optionscode' => 'forumselect',
             'disporder' => 2
         ),
         'discord_integration_new_thread_groups' => array(
-            'title' => 'New Thread User Groups',
-            'description' => 'Sends a Discord message when a new thread is posted by the specified user groups.',
+            'title' => $lang->discord_integration_new_thread_groups_title,
+            'description' => $lang->discord_integration_new_thread_groups_desc,
             'optionscode' => 'groupselect',
             'disporder' => 3
         ),
-        'discord_integration_new_thread_default_nickname' => array(
-            'title' => "Use webhook default nickname for new threads?",
-            'description' => "If no, you can specify a custom name below or default to the acting username.",
-            'description' => "If no, you can specify a custom name below or default to the acting username.",
-            'optionscode' => 'yesno',
-        		'value' => 0,
+        'discord_integration_new_thread_users' => array(
+            'title' => $lang->discord_integration_new_thread_users_title,
+            'description' => $lang->discord_integration_new_thread_users_desc,
+            'optionscode' => 'text',
             'disporder' => 4
         ),
-        'discord_integration_new_thread_nickname' => array(
-            'title' => 'New Thread Discord Nickname',
-            'description' => "If above is no, enter a custom nickname or leave blank to use acting username.",
-            'optionscode' => 'text',
-            'value' => '',
-            'disporder' => 5
-        ),
-        'discord_integration_new_thread_message' => array(
-            'title' => 'New Thread Discord Message',
-            'description' => 'Message to send the Discord channel when a new thread is posted. See <a href="https://github.com/kalynrobinson/discord_integration/wiki/Variables">Discord Integration Variables</a> for variables you can use. Message can use <a href="https://support.discordapp.com/hc/en-us/articles/210298617-Markdown-Text-101-Chat-Formatting-Bold-Italic-Underline">markdown</a>.',
-            'optionscode' => 'textarea',
-            'value' => '[{$mybb->user["username"]}]($userurl) created the thread [{$mybb->input["subject"]}]($threadurl) in [{$forum["name"]}]($forumurl).',
-            'disporder' => 6
-        ),
-        'discord_integration_new_reply_webhook' => array(
-            'title' => 'New Reply Webhook',
-            'description' => 'Webhook for the channel that new reply notifications will be posted in. Leave blank to disable. See <a href="https://support.discordapp.com/hc/en-us/articles/228383668-Intro-to-Webhooks">Intro to Webhooks</a> to learn how to find the webhook for your channel.',
-            'optionscode' => 'text',
-            'disporder' => 7
-        ),
-        'discord_integration_new_reply_forums' => array(
-            'title' => 'New Reply Forums',
-            'description' => 'Sends a Discord message when a new reply is posted in the specified forums.',
-            'optionscode' => 'forumselect',
-            'disporder' => 8
-        ),
-        'discord_integration_new_reply_groups' => array(
-            'title' => 'New Reply User Groups',
-            'description' => 'Sends a Discord message when a new reply is posted by the specified user groups.',
-            'optionscode' => 'groupselect',
-            'disporder' => 9
-        ),
-        'discord_integration_new_reply_default_nickname' => array(
-            'title' => "Use webhook default nickname for new replies?",
-            'description' => "If no, you can specify a custom name below or default to the acting username.",
+        'discord_integration_new_thread_default_nickname' => array(
+            'title' => $lang->discord_integration_new_thread_default_nickname_title,
+            'description' => $lang->discord_integration_new_thread_default_nickname_desc,
             'optionscode' => 'yesno',
         		'value' => 0,
-            'disporder' => 10
+            'disporder' => 5
         ),
-        'discord_integration_new_reply_nickname' => array(
-            'title' => 'New Reply Discord Nickname',
-            'description' => "If above is no, enter a custom nickname or leave blank to use acting username.",
+        'discord_integration_new_thread_nickname' => array(
+            'title' => $lang->discord_integration_new_thread_nickname_title,
+            'description' => $lang->discord_integration_new_thread_nickname_desc,
             'optionscode' => 'text',
             'value' => '',
+            'disporder' => 6
+        ),
+        'discord_integration_new_thread_message' => array(
+            'title' => $lang->discord_integration_new_thread_message_title,
+            'description' => $lang->discord_integration_new_thread_message_desc,
+            'optionscode' => 'textarea',
+            'value' => $lang->discord_integration_new_thread_message,
+            'disporder' => 7
+        ),
+        'discord_integration_new_reply_webhook' => array(
+            'title' => $lang->discord_integration_new_reply_webhook_title,
+            'description' => $lang->discord_integration_new_reply_webhook_desc,
+            'optionscode' => 'text',
+            'disporder' => 8
+        ),
+        'discord_integration_new_reply_forums' => array(
+            'title' => $lang->discord_integration_new_reply_forums_title,
+            'description' => $lang->discord_integration_new_reply_forums_desc,
+            'optionscode' => 'forumselect',
+            'disporder' => 9
+        ),
+        'discord_integration_new_reply_groups' => array(
+            'title' => $lang->discord_integration_new_reply_groups_title,
+            'description' => $lang->discord_integration_new_reply_groups_desc,
+            'optionscode' => 'groupselect',
+            'disporder' => 10
+        ),
+        'discord_integration_new_reply_users' => array(
+            'title' => $lang->discord_integration_new_reply_users_title,
+            'description' => $lang->discord_integration_new_reply_users_desc,
+            'optionscode' => 'text',
+            'disporder' => 11
+        ),
+        'discord_integration_new_reply_default_nickname' => array(
+            'title' => $lang->discord_integration_new_reply_default_nickname_title,
+            'description' => $lang->discord_integration_new_reply_default_nickname_desc,
+            'optionscode' => 'yesno',
+        		'value' => 0,
             'disporder' => 12
         ),
-        'discord_integration_new_reply_message' => array(
-            'title' => 'New Reply Discord Message',
-            'description' => 'Message to send the Discord channel when a new reply is posted. See <a href="https://github.com/kalynrobinson/discord_integration/wiki/Variables">Discord Integration Variables</a> for variables you can use. Message can use <a href="https://support.discordapp.com/hc/en-us/articles/210298617-Markdown-Text-101-Chat-Formatting-Bold-Italic-Underline">markdown</a>.',
-            'optionscode' => 'textarea',
-            'value' => '[{$mybb->user["username"]}]($userurl) posted in [{$mybb->input["subject"]}]($threadurl):\n\n$messageshort',
+        'discord_integration_new_reply_nickname' => array(
+            'title' => $lang->discord_integration_new_reply_nickname_title,
+            'description' => $lang->discord_integration_new_reply_nickname_desc,
+            'optionscode' => 'text',
+            'value' => '',
             'disporder' => 13
         ),
-        'discord_integration_additional' => array(
-            'title' => 'Additional Webhooks',
-            'description' => 'Send messages for more specific behavior, e.g. when a staff member posts in your announcements board. See <a href="https://github.com/kalynrobinson/discord_integration/wiki/Additional-Behavior-Instructions">Additional Behavior Instructions</a> for further information.',
+        'discord_integration_new_reply_message' => array(
+            'title' => $lang->discord_integration_new_reply_message_title,
+            'description' => $lang->discord_integration_new_reply_message_desc,
             'optionscode' => 'textarea',
-			'value' => '-webhook=this_is_a_webhook\n-behavior=new_reply\n-forums=1,2,3\n-groups=1\n-prefixes=0\n-message=[{$mybb->user["username"]}](\$userurl) posted an announcement [{$mybb->input["subject"]}](\$threadurl)!\n---\n-webhook=this_is_another_webhook\n-behavior=new_thread\n-forums=4\n-groups=2,3,4\n-prefixes=1\n-message=\[$mybb->user["username"]](\$userurl) posted an open thread [\{$mybb->input["subject"]}](\$threadurl).',
+            'value' => $lang->discord_integration_new_reply_message,
             'disporder' => 14
+        ),
+        'discord_integration_additional' => array(
+            'title' => $lang->discord_integration_additional_title,
+            'description' => $lang->discord_integration_additional_desc,
+            'optionscode' => 'textarea',
+			'value' => $lang->discord_integration_additional_value,
+            'disporder' => 15
         )
     );
 
-    foreach($setting_array as $name => $setting)
-    {
+    foreach($setting_array as $name => $setting) {
         $setting['name'] = $name;
         $setting['gid'] = $gid;
 
@@ -259,6 +275,12 @@ function has_specific_permission($specific, $behavior) {
 		$allowed = in_array((string) $prefix, $allowed_prefixes);
 	}
 
+	if ($specific['users'] && $allowed) {
+		$allowed_users = explode(',', $specific['users']);
+		$user = $mybb->user['uid'];
+		$allowed = in_array((string) $user, $allowed_users);
+	}
+
 	return $allowed;
 }
 
@@ -281,21 +303,40 @@ function has_permission($behavior) {
 		$allowed = in_array($forum, $allowed_forums);
 	}
 
+	// Not all users are allowed
+	if ($mybb->settings['discord_integration_'.$behavior.'_users']) {
+		$allowed_users = explode(',', $mybb->settings['discord_integration_'.$behavior.'_users']);
+		$user = $mybb->user['uid'];
+		$allowed = in_array($user, $allowed_users);
+	}
+
 	return $allowed;
 }
 
 function build_request($behavior, $nickname=NULL, $content=NULL) {
 	global $cache, $tid, $pid, $mybb, $forum;
 
-	$prefix = $cache->read("threadprefixes")[$mybb->input['threadprefix']]['prefix'];
-
 	$SHORT_POST_LENGTH = 200;
 
 	if (!$content) $content = $mybb->settings['discord_integration_'.$behavior.'_message'];
 
+	$prefix = $cache->read("threadprefixes")[$mybb->input['threadprefix']]['prefix'];
+	
 	$userurl = "{$mybb->settings['bburl']}/member.php?action=profile&uid={$mybb->user['uid']}";
 	$threadurl = "{$mybb->settings['bburl']}/showthread.php?tid={$tid}&pid={$pid}#pid{$pid}";
 	$forumurl = "{$mybb->settings['bburl']}/forumdisplay.php?fid={$forum['fid']}";
+	
+	if ($mybb->user['username']) $username = $mybb->user['username'];
+	else if ($mybb->input['username']) $username = $mybb->input['username'];
+	else $username = 'A Guest';
+
+	if ($mybb->user['uid'])
+		$userlink = "[{$mybb->user['username']}]($userurl)";
+	else
+		$userlink = $username;
+	
+	$threadlink = "[{$mybb->input['subject']}]($threadurl)";	
+	$forumlink = "[{$forum['name']}]($forumurl)";	
 
 	if (strlen($mybb->input['message']) > $SHORT_POST_LENGTH)
 		$messageshort = substr($mybb->input['message'], 0, $SHORT_POST_LENGTH) . '...';
